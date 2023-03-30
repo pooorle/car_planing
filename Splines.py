@@ -1,6 +1,6 @@
-import Classes
+import classes
 
 
 if __name__ == '__main__':
-    sim = Classes.PathPlanning()
+    sim = classes.PathPlanning()
     sim.run()
