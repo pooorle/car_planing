@@ -1,9 +1,11 @@
 name: Check
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -22,3 +24,13 @@ jobs:
         run: flake8 .
       - name: Run mypy
         run: mypy .
+      - name: Test pytest
+        run: |
+          pytest --html=report.html --self-contained-html
+        env:
+          PYTHONPATH: ${{github.workspace}}
+      - name: Archive HTML report
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-report
+          path: report.html
