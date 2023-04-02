@@ -5,7 +5,7 @@ from pygame.math import Vector2
 import time
 import numpy as np
 from PIL import Image, ImageDraw
-from scipy.interpolate import splprep, splev
+from scipy.interpolate import splprep, splev  # type: ignore
 
 
 class Car:
