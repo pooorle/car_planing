@@ -31,7 +31,7 @@ class Car:
 
     def update(self, dt):
         self.velocity += (self.acceleration * dt, 0)
-        self.velocity.x = max(-self.max_velocity, min(int(self.velocity.x), self.max_velocity))
+        self.velocity.x = max(-self.max_velocity, min(self.velocity.x, self.max_velocity))
 
         if self.steering:
             turning_radius = self.length / sin(radians(self.steering))
@@ -495,7 +495,7 @@ class PathPlanning:
                     y.append(y[0])
                     left_spline_linked = True
 
-                tck = splprep([x, y], s=0, k=K)
+                tck, u = splprep([x, y], s=0, k=K)
                 unew = np.arange(0, 1.01, 0.25 / (len(x) ** 1.2))  # more cones  = less final var
                 left_spline = splev(unew, tck)
 
@@ -523,7 +523,7 @@ class PathPlanning:
                     y.append(y[0])
                     right_spline_linked = True
 
-                tck = splprep([x, y], s=0, k=K)
+                tck, u = splprep([x, y], s=0, k=K)
                 unew = np.arange(0, 1.01, 0.25 / (len(x) ** 1.2))  # more cones  = less final var
                 right_spline = splev(unew, tck)
 
@@ -597,17 +597,17 @@ class PathPlanning:
                 if len(path_midpoints[0]) == 1:
                     path_midpoints = [[car.position.x, path_midpoints[0][0]], [car.position.y, path_midpoints[1][0]]]
 
-                    tck = splprep(path_midpoints, s=1, k=1)
+                    tck, u = splprep(path_midpoints, s=1, k=1)
                     unew = np.arange(0, 1.01, 0.5 / (len(x) ** 0.4))  # more cones  = less final var
                     path_midpoints_spline = splev(unew, tck)
 
                 elif len(path_midpoints[0]) == 2:
-                    tck = splprep(path_midpoints, s=1, k=1)
+                    tck, u = splprep(path_midpoints, s=1, k=1)
                     unew = np.arange(0, 1.01, 0.5 / (len(x) ** 0.4))  # more cones  = less final var
                     path_midpoints_spline = splev(unew, tck)
 
                 elif len(path_midpoints[0]) > 2:
-                    tck = splprep(path_midpoints, s=1, k=2)
+                    tck, u = splprep(path_midpoints, s=1, k=2)
                     unew = np.arange(0, 1.01, 0.5 / (len(x) ** 0.4))  # more cones  = less final var
                     path_midpoints_spline = splev(unew, tck)
 
