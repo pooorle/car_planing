@@ -4,3 +4,4 @@ Pillow~=9.4.0
 scipy~=1.10.1
 flake8~=6.0.0
 mypy~=1.1.1
+types-Pillow~=9.4.0.19
