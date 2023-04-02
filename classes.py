@@ -559,7 +559,7 @@ class PathPlanning:
                     # calculating angle between car angle and midpoint
                     if dist_car < car.fov / ppu:
 
-                        a_b = Vector2(path_midpoints[0][i], path_midpoints[1][i]) - car.position
+                        a_b = Vector2(path_midpoints[0][i], path_midpoints[1][i]) - car.position # type: ignore
                         a_b = np.transpose(np.matrix([a_b.x, -1 * a_b.y]))
 
                         rotate = np.matrix([[np.cos(-car_angle * np.pi / 180), -1 * np.sin(-car_angle * np.pi / 180)],
@@ -597,17 +597,17 @@ class PathPlanning:
                 if len(path_midpoints[0]) == 1:
                     path_midpoints = [[car.position.x, path_midpoints[0][0]], [car.position.y, path_midpoints[1][0]]]
 
-                    tck, u = splprep(path_midpoints, s=1, k=1)
+                    tck, u = splprep(path_midpoints, s=1, k=1) # type: ignore
                     unew = np.arange(0, 1.01, 0.5 / (len(x) ** 0.4))  # more cones  = less final var
                     path_midpoints_spline = splev(unew, tck)
 
                 elif len(path_midpoints[0]) == 2:
-                    tck, u = splprep(path_midpoints, s=1, k=1)
+                    tck, u = splprep(path_midpoints, s=1, k=1) # type: ignore
                     unew = np.arange(0, 1.01, 0.5 / (len(x) ** 0.4))  # more cones  = less final var
                     path_midpoints_spline = splev(unew, tck)
 
                 elif len(path_midpoints[0]) > 2:
-                    tck, u = splprep(path_midpoints, s=1, k=2)
+                    tck, u = splprep(path_midpoints, s=1, k=2) # type: ignore
                     unew = np.arange(0, 1.01, 0.5 / (len(x) ** 0.4))  # more cones  = less final var
                     path_midpoints_spline = splev(unew, tck)
 
