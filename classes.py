@@ -31,7 +31,7 @@ class Car:
 
     def update(self, dt):
         self.velocity += (self.acceleration * dt, 0)
-        self.velocity.x = max(-self.max_velocity, min(self.velocity.x, self.max_velocity))
+        self.velocity.x = max(-self.max_velocity, min(int(self.velocity.x), self.max_velocity))
 
         if self.steering:
             turning_radius = self.length / sin(radians(self.steering))
@@ -42,6 +42,7 @@ class Car:
         self.position += self.velocity.rotate(-self.angle) * dt
         self.angle += degrees(angular_velocity) * dt
 
+
 class Target:
     def __init__(self, x, y):
         self.position = Vector2(x, y)
@@ -50,13 +51,13 @@ class Target:
         self.alpha = 0
         self.visible = False
 
-    def update(self, car, time_running, ppu, car_angle):
+    def update(self, car, ppu, car_angle):
 
         # distance to car
         self.dist_car = np.linalg.norm(self.position - car.position)
 
         # if within 20 pixels of car, target has been 'passed' by the car
-        if self.passed == False and np.linalg.norm(self.position - car.position) <= 20 / ppu:
+        if self.passed is False and np.linalg.norm(self.position - car.position) <= 20 / ppu:
             self.passed = True
             self.visible = False
 
@@ -79,12 +80,13 @@ class Target:
             self.alpha = alpha[0, 0]
 
             # if the target is outside the car fov, it is no longer visible
-            if np.abs(self.alpha) < car.fov_range and self.passed == False:
+            if np.abs(self.alpha) < car.fov_range and self.passed is False:
                 self.visible = True
             else:
                 self.visible = False
         else:
             self.visible = False
+
 
 class Cone:
     def __init__(self, x, y, category):
@@ -100,7 +102,7 @@ class Cone:
         self.dist_car = np.linalg.norm(self.position - car.position)
 
         # calculating angle between car angle and cone
-        if np.linalg.norm(self.position - car.position) < car.fov / ppu and self.visible == False and car.auto == True:
+        if np.linalg.norm(self.position - car.position) < car.fov / ppu and self.visible is False and car.auto is True:
 
             a_b = self.position - car.position
             a_b = np.transpose(np.matrix([a_b.x, -1 * a_b.y]))
@@ -176,12 +178,8 @@ class PathPlanning:
         visible_right_cones = []
         left_spline = 0
         right_spline = 0
-        path_midpoints = 0
-        path_midpoints_spline = 0
 
-        alpha = 0
         circles = []
-        dist = 0
         closest_target = None
         mouse_pos_list = []
         target_locations = []
@@ -194,7 +192,7 @@ class PathPlanning:
 
         def draw_line_dashed(surface, color, start_pos, end_pos, width=1, dash_length=10, exclude_corners=True):
 
-            'simply a function that draws dashed lines in pygame'
+            """simply a function that draws dashed lines in pygame"""
 
             # convert tuples to numpy arrays
             start_pos = np.array(start_pos)
@@ -207,7 +205,7 @@ class PathPlanning:
             dash_amount = int(length / dash_length)
 
             # x-y-value-pairs of where dashes start (and on next, will end)
-            dash_knots = np.array([np.linspace(start_pos[i], end_pos[i], dash_amount) for i in range(2)]).transpose()
+            dash_knots = np.array([np.linspace(start_pos[k], end_pos[k], dash_amount) for k in range(2)]).transpose()
 
             return [pygame.draw.line(surface, color, tuple(dash_knots[n]), tuple(dash_knots[n + 1]), width)
                     for n in range(int(exclude_corners), dash_amount - int(exclude_corners), 2)]
@@ -238,7 +236,7 @@ class PathPlanning:
                             make_target = False
                             break
 
-                    if make_target == True:
+                    if make_target:
                         target = Target(mouse_pos[0] / ppu, mouse_pos[1] / ppu)
                         targets.append(target)
                         non_passed_targets.append(target)
@@ -259,7 +257,7 @@ class PathPlanning:
                             make_cone = False
                             break
 
-                    if make_cone == True:
+                    if make_cone:
                         left_cone = Cone(mouse_pos[0] / ppu, mouse_pos[1] / ppu, 'left')
                         left_cones.append(left_cone)
                         mouse_pos_list.append(mouse_pos)
@@ -278,7 +276,7 @@ class PathPlanning:
                             make_cone = False
                             break
 
-                    if make_cone == True:
+                    if make_cone:
                         right_cone = Cone(mouse_pos[0] / ppu, mouse_pos[1] / ppu, 'right')
                         right_cones.append(right_cone)
                         mouse_pos_list.append(mouse_pos)
@@ -293,15 +291,9 @@ class PathPlanning:
                 right_cones = []
                 visible_left_cones = []
                 visible_right_cones = []
-                left_spline = []
-                right_spline = []
-                path_midpoints = []
-                right_spline_linked == False
-                left_spline_linked == False
                 mouse_pos_list = []
                 left_spline = 0
                 right_spline = 0
-                path_midpoints_spline = 0
 
             # if 2 is pressed, increasing cruising speed
             # if 1 is pressed, decrease cruising speed
@@ -315,7 +307,7 @@ class PathPlanning:
             # if a pressed then toggle automatic driving
             for event in events:
                 if event.type == pygame.KEYUP and event.key == pygame.K_a:
-                    if car.auto == False:
+                    if not car.auto:
                         car.auto = True
                     else:
                         car.auto = False
@@ -323,7 +315,7 @@ class PathPlanning:
             # if f pressed then toggle fullscreen
             for event in events:
                 if event.type == pygame.KEYUP and event.key == pygame.K_f:
-                    if fullscreen == False:
+                    if not fullscreen:
                         fullscreen = True
                     else:
                         fullscreen = False
@@ -331,7 +323,7 @@ class PathPlanning:
             # if h pressed then toggle headlight
             for event in events:
                 if event.type == pygame.KEYUP and event.key == pygame.K_h:
-                    if car.headlights == False:
+                    if not car.headlights:
                         car.headlights = True
                     else:
                         car.headlights = False
@@ -339,7 +331,7 @@ class PathPlanning:
             # if s pressed then set to track mode
             for event in events:
                 if event.type == pygame.KEYUP and event.key == pygame.K_s:
-                    if track == False:
+                    if not track:
                         track = True
                     else:
                         track = False
@@ -350,7 +342,7 @@ class PathPlanning:
                     car.acceleration = car.brake_deceleration
                 else:
                     car.acceleration += 1 * dt
-            elif pressed[pygame.K_DOWN] and car.breaks == True:
+            elif pressed[pygame.K_DOWN] and car.breaks is True:
                 if car.velocity.x > 0:
                     car.acceleration = -car.brake_deceleration
                 else:
@@ -437,8 +429,8 @@ class PathPlanning:
                 # set up while loop here to find next target
 
             # if currently no targets left and is a track, set all targets to non-passed and continue
-            if len(targets) > 0 and len(non_passed_targets) == 0 and track == True and (
-                    right_spline_linked == True or left_spline_linked == True):
+            if len(targets) > 0 and len(non_passed_targets) == 0 and track is True and (
+                    right_spline_linked is True or left_spline_linked is True):
                 track_number += 1
                 non_passed_targets = targets.copy()
                 for target in targets:
@@ -446,7 +438,7 @@ class PathPlanning:
 
             # setting car.position for angle calculations
             rotated = pygame.transform.rotate(car_image, car.angle)
-            rect = rotated.get_rect()
+            rotated.get_rect()
             car.position = car.position  # - (rect.width / (2*ppu), rect.height /(2*ppu)) - (10/ppu,0)
 
             # manual steering
@@ -459,7 +451,8 @@ class PathPlanning:
 
             elif len(visible_targets) > 0 and np.linalg.norm(
                     closest_target.position - car.position) < car.fov / ppu and np.linalg.norm(
-                closest_target.position - car.position) > 20 / ppu and car.auto == True and closest_target.passed == False:
+                closest_target.position - car.position) > 20 / ppu and car.auto \
+                    is True and closest_target.passed is False:
 
                 dist = closest_target.dist_car
                 alpha = closest_target.alpha
@@ -480,7 +473,7 @@ class PathPlanning:
 
             # cubic splines for left track boundaries
 
-            if len(visible_left_cones) > 1 and car.auto == True and new_visible_left_cone_flag == True:
+            if len(visible_left_cones) > 1 and car.auto is True and new_visible_left_cone_flag is True:
                 x = []
                 y = []
                 for left_cone in visible_left_cones:
@@ -497,18 +490,18 @@ class PathPlanning:
                 else:
                     K = 2
 
-                if len(visible_left_cones) == len(left_cones) and track == True and left_spline_linked == False:
+                if len(visible_left_cones) == len(left_cones) and track is True and left_spline_linked is False:
                     x.append(x[0])
                     y.append(y[0])
                     left_spline_linked = True
 
-                tck, u = splprep([x, y], s=0, k=K)
+                tck = splprep([x, y], s=0, k=K)
                 unew = np.arange(0, 1.01, 0.25 / (len(x) ** 1.2))  # more cones  = less final var
                 left_spline = splev(unew, tck)
 
             # cubic splines for right track boundaries
 
-            if len(visible_right_cones) > 1 and car.auto == True and new_visible_right_cone_flag == True:
+            if len(visible_right_cones) > 1 and car.auto is True and new_visible_right_cone_flag is True:
                 x = []
                 y = []
                 for right_cone in visible_right_cones:
@@ -525,19 +518,19 @@ class PathPlanning:
                 else:
                     K = 2
 
-                if len(visible_right_cones) == len(right_cones) and track == True and right_spline_linked == False:
+                if len(visible_right_cones) == len(right_cones) and track is True and right_spline_linked is False:
                     x.append(x[0])
                     y.append(y[0])
                     right_spline_linked = True
 
-                tck, u = splprep([x, y], s=0, k=K)
+                tck = splprep([x, y], s=0, k=K)
                 unew = np.arange(0, 1.01, 0.25 / (len(x) ** 1.2))  # more cones  = less final var
                 right_spline = splev(unew, tck)
 
             # auto generate path based on splines/cones
 
             if len(visible_left_cones) > 1 and len(visible_right_cones) > 1 and (
-                    new_visible_right_cone_flag == True or new_visible_left_cone_flag == True):  # track_number == 0 and
+                    new_visible_right_cone_flag is True or new_visible_left_cone_flag is True):  # track_number == 0 and
 
                 path_midpoints_x = []  # [car.position.x]
                 path_midpoints_y = []  # [car.position.y]
@@ -558,7 +551,10 @@ class PathPlanning:
                 # find all 'visible' midpoints - this may be inefficient
                 for i in range(len(path_midpoints[0])):
                     #  print(i)
-                    dist_car = np.linalg.norm(Vector2(path_midpoints[0][i], path_midpoints[1][i]) - car.position)
+                    # Calculate the distance between two points using NumPy
+                    point1 = np.array([path_midpoints[0][i], path_midpoints[1][i]])
+                    point2 = np.array([car.position.x, car.position.y])
+                    dist_car = np.linalg.norm(point1 - point2)
 
                     # calculating angle between car angle and midpoint
                     if dist_car < car.fov / ppu:
@@ -587,8 +583,8 @@ class PathPlanning:
                 if len(path_to_sort) > 1:
                     for i in range(len(path_to_sort)):
                         # if statement making sure we have no duplicate co-ordinates
-                        if path_to_sort[i][1] in path_midpoints_visible_x or path_to_sort[i][
-                            2] in path_midpoints_visible_y:
+                        if path_to_sort[i][1] in path_midpoints_visible_x or \
+                                path_to_sort[i][2] in path_midpoints_visible_y:
                             pass
                         else:
                             path_midpoints_visible_x.append(path_to_sort[i][1])
@@ -601,17 +597,17 @@ class PathPlanning:
                 if len(path_midpoints[0]) == 1:
                     path_midpoints = [[car.position.x, path_midpoints[0][0]], [car.position.y, path_midpoints[1][0]]]
 
-                    tck, u = splprep(path_midpoints, s=1, k=1)
+                    tck = splprep(path_midpoints, s=1, k=1)
                     unew = np.arange(0, 1.01, 0.5 / (len(x) ** 0.4))  # more cones  = less final var
                     path_midpoints_spline = splev(unew, tck)
 
                 elif len(path_midpoints[0]) == 2:
-                    tck, u = splprep(path_midpoints, s=1, k=1)
+                    tck = splprep(path_midpoints, s=1, k=1)
                     unew = np.arange(0, 1.01, 0.5 / (len(x) ** 0.4))  # more cones  = less final var
                     path_midpoints_spline = splev(unew, tck)
 
                 elif len(path_midpoints[0]) > 2:
-                    tck, u = splprep(path_midpoints, s=1, k=2)
+                    tck = splprep(path_midpoints, s=1, k=2)
                     unew = np.arange(0, 1.01, 0.5 / (len(x) ** 0.4))  # more cones  = less final var
                     path_midpoints_spline = splev(unew, tck)
 
@@ -635,7 +631,7 @@ class PathPlanning:
                                     make_target = False
                                     break
 
-                            if make_target == True:
+                            if make_target:
                                 new_target = Target(new_target_loc[0], new_target_loc[1])
                                 targets.append(new_target)
                                 non_passed_targets.append(new_target)
@@ -645,7 +641,7 @@ class PathPlanning:
             car.update(dt)
 
             for target in targets:
-                target.update(car, time_running, ppu, car_angle)
+                target.update(car, time_running, ppu)
 
             for left_cone in left_cones:
                 left_cone.update(car, ppu, car_angle)
@@ -667,14 +663,16 @@ class PathPlanning:
             circles.append(circle)
 
             # draw headlights
-            if car.headlights == True:
+            if car.headlights:
                 pil_size = car.fov * 2
 
                 pil_image = Image.new("RGBA", (pil_size, pil_size))
                 pil_draw = ImageDraw.Draw(pil_image)
                 # pil_draw.arc((0, 0, pil_size-1, pil_size-1), 0, 270, fill=RED)
-                pil_draw.pieslice((0, 0, pil_size - 1, pil_size - 1), -car.angle - car.fov_range,
-                                  -car.angle + car.fov_range, fill=(55, 55, 35))
+
+                bbox = ((0.0, 0.0), (float(pil_size - 1), float(pil_size - 1)))
+                angle_range = (-car.angle - car.fov_range, -car.angle + car.fov_range)
+                pil_draw.pieslice(bbox, *angle_range, fill=(55, 55, 35))
 
                 mode = pil_image.mode
                 size = pil_image.size
@@ -698,7 +696,7 @@ class PathPlanning:
                     else:
                         pass
                         self.screen.blit(target_image_g, target.position * ppu - (3, 3))
-                    if target.visible == True and car.auto == True:
+                    if target.visible is True and car.auto is True:
                         pass
                         draw_line_dashed(self.screen, (150, 150, 150), (pos_1, pos_2), target.position * ppu, width=1,
                                          dash_length=10, exclude_corners=True)
@@ -725,16 +723,17 @@ class PathPlanning:
             #    for i in range(len(path_midpoints[0])):
             #        self.screen.blit(target_image, Vector2(path_midpoints[0][i],path_midpoints[1][i]) * ppu - (3,3))
 
-            # if path_midpoints_spline != 0 and len(path_midpoints_spline) > 0:
-            #   for i in range(len(path_midpoints_spline[0])):
-            #       self.screen.blit(target_image, Vector2(path_midpoints_spline[0][i],path_midpoints_spline[1][i]) * ppu - (3,3))
+            # if path_midpoints_spline != 0 and len(path_midpoints_spline) > 0: for i in range(len(
+            # path_midpoints_spline[0])): self.screen.blit(target_image, Vector2(path_midpoints_spline[0][i],
+            # path_midpoints_spline[1][i]) * ppu - (3,3))
 
-            # draw the car sprite
-            # pygame.draw.rect(self.screen, (200,200,200), (car.position * ppu - ((rect.width / 2),(rect.height / 2)), (rect.width, rect.height))) #draws a little box around the car sprite (just for debug)
+            # draw the car sprite pygame.draw.rect(self.screen, (200,200,200), (car.position * ppu - ((rect.width /
+            # 2),(rect.height / 2)), (rect.width, rect.height))) #draws a little box around the car sprite (just for
+            # debug)
             self.screen.blit(rotated, car.position * ppu - ((rect.width / 2), (rect.height / 2)))  # draw car
 
             # draw dotted lines between car and closest target
-            if len(visible_targets) > 0 and car.auto == True:
+            if len(visible_targets) > 0 and car.auto is True:
                 draw_line_dashed(self.screen, (155, 255, 255), (pos_1, pos_2), closest_target.position * ppu, width=2,
                                  dash_length=10, exclude_corners=True)
 
@@ -744,15 +743,15 @@ class PathPlanning:
                 #   text_pos = [10, 10]
                 #   self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render(f'Car angle : {round(car_angle, 1)}', 1, (255, 255, 255))
+                text_surf = text_font.render(f'Car angle : {round(car_angle, 1)}', True, (255, 255, 255))
                 text_pos = [10, 15]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render(f'Steering : {round(car.steering, 1)}', 1, (255, 255, 255))
+                text_surf = text_font.render(f'Steering : {round(car.steering, 1)}', True, (255, 255, 255))
                 text_pos = [10, 35]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render(f'Speed : {round(car.velocity.x, 1)}', 1, (255, 255, 255))
+                text_surf = text_font.render(f'Speed : {round(car.velocity.x, 1)}', True, (255, 255, 255))
                 text_pos = [10, 55]
                 self.screen.blit(text_surf, text_pos)
 
@@ -760,76 +759,75 @@ class PathPlanning:
                 #   text_pos = [10, 70]
                 #   self.screen.blit(text_surf, text_pos)
 
-                #   text_surf = text_font.render(f'Targets passed: {len(targets) - len(non_passed_targets)}', 1, (255, 255, 255))
-                #   text_pos = [10, 110]
-                #   self.screen.blit(text_surf, text_pos)
+                # text_surf = text_font.render(f'Targets passed: {len(targets) - len(non_passed_targets)}', 1, (255,
+                # 255, 255)) text_pos = [10, 110] self.screen.blit(text_surf, text_pos)
 
                 #   text_surf = text_font.render(f'Number of targets: {len(targets)}', 1, (255, 255, 255))
                 #   text_pos = [10, 130]
                 #   self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render(f'Track: {track}', 1, (255, 255, 255))
+                text_surf = text_font.render(f'Track: {track}', True, (255, 255, 255))
                 text_pos = [10, 100]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render(f'Autonomous: {car.auto}', 1, (255, 255, 255))
+                text_surf = text_font.render(f'Autonomous: {car.auto}', True, (255, 255, 255))
                 text_pos = [10, 80]
                 self.screen.blit(text_surf, text_pos)
 
                 if track:
-                    text_surf = text_font.render(f'Laps: {track_number}', 1, (255, 255, 255))
+                    text_surf = text_font.render(f'Laps: {track_number}', True, (255, 255, 255))
                     text_pos = [10, 120]
                     self.screen.blit(text_surf, text_pos)
 
-                #  text_surf = text_font.render(f'number of visible left cones: {len(visible_left_cones)}', 1, (255, 255, 255))
-                #  text_pos = [10, 120]
-                #  self.screen.blit(text_surf, text_pos)
+                # text_surf = text_font.render(f'number of visible left cones: {len(visible_left_cones)}', 1, (255,
+                # 255, 255)) text_pos = [10, 120] self.screen.blit(text_surf, text_pos)
 
                 # text_surf = text_font.render(f'Headlights: {car.headlights}', 1, (255, 255, 255))
                 # text_pos = [10, 190]
                 # self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render('Press F to enter Fullscreen', 1, (155, 155, 155))
+                text_surf = text_font.render('Press F to enter Fullscreen', True, (155, 155, 155))
                 text_pos = [10, 500]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render('Press 1 and 2 to alter car cruising speed', 1, (155, 155, 155))
+                text_surf = text_font.render('Press 1 and 2 to alter car cruising speed', True, (155, 155, 155))
                 text_pos = [10, 520]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render('Press A to toggle autonomous', 1, (155, 155, 155))
+                text_surf = text_font.render('Press A to toggle autonomous', True, (155, 155, 155))
                 text_pos = [10, 540]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render('Press H to toggle headlights', 1, (155, 155, 155))
+                text_surf = text_font.render('Press H to toggle headlights', True, (155, 155, 155))
                 text_pos = [10, 560]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render('Press L to place left cone', 1, (155, 155, 155))
+                text_surf = text_font.render('Press L to place left cone', True, (155, 155, 155))
                 text_pos = [10, 580]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render('Press R to place right cone', 1, (155, 155, 155))
+                text_surf = text_font.render('Press R to place right cone', True, (155, 155, 155))
                 text_pos = [10, 600]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render('Press T to place target', 1, (155, 155, 155))
+                text_surf = text_font.render('Press T to place target', True, (155, 155, 155))
                 text_pos = [10, 620]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render('Press CTRL + C to clear', 1, (155, 155, 155))
+                text_surf = text_font.render('Press CTRL + C to clear', True, (155, 155, 155))
                 text_pos = [10, 640]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render('Press S to make track', 1, (155, 155, 155))
+                text_surf = text_font.render('Press S to make track', True, (155, 155, 155))
                 text_pos = [10, 680]
                 self.screen.blit(text_surf, text_pos)
 
-                text_surf = text_font.render('Press arrow keys to steer manually', 1, (155, 155, 155))
+                text_surf = text_font.render('Press arrow keys to steer manually', True, (155, 155, 155))
                 text_pos = [10, 660]
                 self.screen.blit(text_surf, text_pos)
             else:
-                text_surf = text_font.render('Press F to exit Fullscreen', 1, (80, 80, 80))
+                text_font = pygame.font.Font(None, 30)
+                text_surf = text_font.render('Press F to exit Fullscreen', True, (80, 80, 80))
                 text_pos = [10, 690]
                 self.screen.blit(text_surf, text_pos)
 
