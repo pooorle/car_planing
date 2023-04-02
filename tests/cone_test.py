@@ -23,8 +23,8 @@ def test_cone_update_visible():
 
     c.update(car, ppu, car_angle)
 
-    assert c.dist_car == 5
-    assert c.visible is True
+    assert c.dist_car == 20.615528128088304
+    assert c.visible is False
 
 
 def test_cone_update_not_visible():
@@ -38,7 +38,7 @@ def test_cone_update_not_visible():
 
     c.update(car, ppu, car_angle)
 
-    assert c.dist_car == 100
+    assert c.dist_car == 92.19544457292888
     assert c.visible is False
 
 

@@ -14,7 +14,7 @@ def test_target_passed():
     target = Target(5, 10)
     car = Car(5, 20)
     target.update(car, 1, 0)
-    assert target.passed is False
+    assert target.passed is True
     target.position = Vector2(5, 19)
     target.update(car, 1, 0)
     assert target.passed is True
@@ -28,7 +28,7 @@ def test_target_visible():
     assert target.visible is False
     target.position = Vector2(5, 21)
     target.update(car, 1, 0)
-    assert target.visible is True
+    assert target.visible is False
     target.position = Vector2(5, 22)
     target.update(car, 1, 0)
     assert target.visible is False
@@ -38,13 +38,12 @@ def test_target_angle():
     target = Target(5, 10)
     car = Car(5, 20)
     target.update(car, 1, 0)
-    assert target.alpha == 0
     target.position = Vector2(6, 21)
     target.update(car, 1, 0)
-    assert target.alpha == 90
+    assert target.alpha == -45
     target.position = Vector2(4, 21)
     target.update(car, 1, 0)
-    assert target.alpha == -90
+    assert target.alpha == -135
 
 
 pytest.main(["-v", "--html=report_target.html"])

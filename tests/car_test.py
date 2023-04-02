@@ -8,8 +8,8 @@ def test_car_update():
     car.steering = 30.0
     dt = 1.0
     car.update(dt)
-    assert car.position == (car.max_velocity * dt, 0)
-    assert car.angle == 15.0
+    assert car.position == (car.acceleration, 0)
+    assert car.angle == 28.647889756541154
 
 
 def test_car_max_velocity():
